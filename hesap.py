@@ -13,21 +13,38 @@ AYDA_BIR = "ayda_bir"             # tutar (sabit)
 SIKLIKLAR = (HER_OKUL_GUNU, AYDA_X_KEZ, AYDA_BIR)
 
 
-# Her yıl aynı tarihe gelen resmi tatiller (ay, gün).
+# Her yıl aynı tarihe gelen resmi tatiller: (ay, gün) -> adı.
 # Dini bayramlar her yıl değiştiği için bu listede yok.
 SABIT_RESMI_TATILLER = {
-    (1, 1),    # Yılbaşı
-    (4, 23),   # Ulusal Egemenlik ve Çocuk Bayramı
-    (5, 1),    # Emek ve Dayanışma Günü
-    (5, 19),   # Atatürk'ü Anma, Gençlik ve Spor Bayramı
-    (7, 15),   # Demokrasi ve Milli Birlik Günü
-    (8, 30),   # Zafer Bayramı
-    (10, 29),  # Cumhuriyet Bayramı
+    (1, 1): "Yılbaşı",
+    (4, 23): "Ulusal Egemenlik ve Çocuk Bayramı",
+    (5, 1): "Emek ve Dayanışma Günü",
+    (5, 19): "Atatürk'ü Anma, Gençlik ve Spor Bayramı",
+    (7, 15): "Demokrasi ve Milli Birlik Günü",
+    (8, 30): "Zafer Bayramı",
+    (10, 29): "Cumhuriyet Bayramı",
 }
 
 
 def resmi_tatil_mi(ay: int, gun: int) -> bool:
     return (ay, gun) in SABIT_RESMI_TATILLER
+
+
+def ay_takvimi(yil: int, ay: int) -> list:
+    """Ayın her günü için gün türünü döndürür: okul, hafta_sonu veya tatil."""
+    _, gun_sayisi = calendar.monthrange(yil, ay)
+    gunler = []
+    for gun in range(1, gun_sayisi + 1):
+        hafta_gunu = calendar.weekday(yil, ay, gun)  # 0 = Pazartesi
+        tatil_adi = SABIT_RESMI_TATILLER.get((ay, gun))
+        if hafta_gunu >= 5:
+            tur = "hafta_sonu"
+        elif tatil_adi:
+            tur = "tatil"
+        else:
+            tur = "okul"
+        gunler.append({"gun": gun, "hafta_gunu": hafta_gunu, "tur": tur, "tatil_adi": tatil_adi})
+    return gunler
 
 
 def is_gunu_sayisi(yil: int, ay: int) -> int:

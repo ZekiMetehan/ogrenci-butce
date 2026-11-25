@@ -29,6 +29,18 @@
   .ara td { font-weight: 600; border-bottom: 2px solid #ddd; }
   .buyuk { font-size: 22px; font-weight: 700; }
   .eksi { color: #c00; }
+  .takvim { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .takvim .baslik { text-align: center; font-size: 12px; color: #777; padding: 4px 0; }
+  .takvim .gun { border-radius: 6px; padding: 6px 4px; min-height: 44px; font-size: 13px; text-align: center; }
+  .takvim .gun b { display: block; font-size: 15px; }
+  .takvim .okul { background: #e5f4e4; }
+  .takvim .hafta_sonu { background: #f0efec; color: #999; }
+  .takvim .tatil { background: #fbebeb; color: #c00; }
+  .lejant { display: flex; gap: 14px; font-size: 13px; color: #555; margin-top: 10px; flex-wrap: wrap; }
+  .lejant span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .lejant .l-okul::before { background: #e5f4e4; }
+  .lejant .l-hs::before { background: #f0efec; }
+  .lejant .l-tatil::before { background: #fbebeb; }
   .arti { color: #1a7f37; }
 </style>
 </head>
@@ -73,6 +85,13 @@
   <div class="kart" id="sonuc_kart" hidden>
     <h2>💰 Aylık özet</h2>
     <div id="sonuc"></div>
+  </div>
+
+  <div class="kart" id="takvim_kart" hidden>
+    <h2>📅 Takvim</h2>
+    <p class="aciklama">Her okul gününün altında o günün gideri yazar: yemek + okul ulaşımı + "her okul günü" ekstraları.</p>
+    <div class="takvim" id="takvim"></div>
+    <div class="lejant"><span class="l-okul">Okul günü</span><span class="l-hs">Hafta sonu</span><span class="l-tatil">Resmi tatil</span></div>
   </div>
 
 <script>
@@ -123,6 +142,28 @@ function ekstralariOku() {
   }));
 }
 
+function gunlukOkulGideri() {
+  const ekstralar = ekstralariOku().filter(e => e.siklik === "her_okul_gunu");
+  return sayi("ogun_ucreti") + 2 * sayi("binis_ucreti") + ekstralar.reduce((t, e) => t + e.tutar, 0);
+}
+
+async function takvimGoster(yil, ay) {
+  const cevap = await fetch(`/api/takvim?yil=${yil}&ay=${ay}`);
+  if (!cevap.ok) return;
+  const gunler = await cevap.json();
+  const gunluk = gunlukOkulGideri();
+  const takvim = document.getElementById("takvim");
+  const basliklar = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"].map(g => `<div class="baslik">${g}</div>`).join("");
+  const bosluk = "<div></div>".repeat(gunler[0].hafta_gunu);
+  const hucreler = gunler.map(g => {
+    const alt = g.tur === "okul" ? `${Math.round(gunluk)} TL` : g.tur === "tatil" ? "Tatil" : "";
+    const ipucu = g.tatil_adi ? ` title="${g.tatil_adi}"` : "";
+    return `<div class="gun ${g.tur}"${ipucu}><b>${g.gun}</b>${alt}</div>`;
+  }).join("");
+  takvim.innerHTML = basliklar + bosluk + hucreler;
+  document.getElementById("takvim_kart").hidden = false;
+}
+
 async function hesapla() {
   const kart = document.getElementById("sonuc_kart");
   const kutu = document.getElementById("sonuc");
@@ -145,6 +186,7 @@ async function hesapla() {
     return;
   }
   const s = await cevap.json();
+  takvimGoster(yil, ay);
   const k = s.kesin;
   const ekstraSatirlari = s.ekstralar.map(e => `<tr><td>${e.ad.replace(/</g, "&lt;")}</td><td>${tl(e.aylik)}</td></tr>`).join("");
   kutu.innerHTML = `
