@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Öğrenci Bütçe</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 620px; margin: 32px auto; padding: 0 16px; color: #222; }
+  h1 { margin-bottom: 4px; }
+  .kart { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 18px 0; }
+  .kart h2 { margin: 0 0 12px; font-size: 18px; }
+  label { display: block; margin: 8px 0 4px; font-size: 14px; color: #555; }
+  input { width: 100%; box-sizing: border-box; padding: 8px; font-size: 15px; border: 1px solid #bbb; border-radius: 6px; }
+  .satir { display: flex; gap: 10px; }
+  .satir > div { flex: 1; }
+  button { margin-top: 12px; padding: 9px 18px; font-size: 15px; border: 0; border-radius: 6px; background: #B4570A; color: #fff; cursor: pointer; }
+  .sonuc { margin-top: 12px; font-size: 15px; }
+  .buyuk { font-size: 22px; font-weight: 700; }
+  .eksi { color: #c00; }
+  .arti { color: #1a7f37; }
+  small { color: #777; }
+</style>
+</head>
+<body>
+  <h1>💸 Öğrenci Bütçe</h1>
+  <p>Bu ay yemek kartına ve otobüse ne kadar para gideceğini hesapla.</p>
+
+  <div class="kart">
+    <h2>📆 Hangi ay?</h2>
+    <input type="month" id="donem">
+  </div>
+
+  <div class="kart">
+    <h2>🍽️ Yemek kartı</h2>
+    <div class="satir">
+      <div><label>Bir öğün ücreti (TL)</label><input type="number" id="ogun_ucreti" min="0" step="0.5" value="45"></div>
+      <div><label>Günde kaç öğün?</label><input type="number" id="gunluk_ogun" min="0" max="5" value="1"></div>
+    </div>
+    <button onclick="yemekHesapla()">Hesapla</button>
+    <div class="sonuc" id="yemek_sonuc"></div>
+  </div>
+
+<script>
+const bugun = new Date();
+document.getElementById("donem").value = bugun.toISOString().slice(0, 7);
+
+function sayi(id) { return Number(document.getElementById(id).value); }
+function tl(x) { return x.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " TL"; }
+function donem() {
+  const [yil, ay] = document.getElementById("donem").value.split("-").map(Number);
+  return { yil, ay };
+}
+
+async function istek(adres, veri) {
+  const cevap = await fetch(adres, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(veri)
+  });
+  if (!cevap.ok) throw new Error("Lütfen bütün kutuları doğru doldur.");
+  return cevap.json();
+}
+
+let yemekToplam = null;
+async function yemekHesapla() {
+  const kutu = document.getElementById("yemek_sonuc");
+  try {
+    const s = await istek("/api/yemek", { ...donem(), ogun_ucreti: sayi("ogun_ucreti"), gunluk_ogun: sayi("gunluk_ogun") });
+    yemekToplam = s.toplam;
+    kutu.innerHTML = `Bu ay <b>${s.is_gunu} iş günü</b> var → <b>${s.toplam_ogun} öğün</b><br>
+      Yemek kartına yüklemen gereken: <span class="buyuk">${tl(s.toplam)}</span>`;
+  } catch (e) { kutu.innerHTML = `<span class="eksi">${e.message}</span>`; }
+}
+</script>
+</body>
+</html>
