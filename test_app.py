@@ -13,6 +13,21 @@ def test_is_gunu_sayisi():
     assert hesap.is_gunu_sayisi(2026, 2) == 20
 
 
+def test_hafta_icine_denk_gelen_resmi_tatil_dusulur():
+    # 29 Ekim 2026 Perşembe: Ekim'de 22 hafta içi gün var, tatil düşülünce 21
+    assert hesap.is_gunu_sayisi(2026, 10) == 21
+
+
+def test_hafta_sonuna_denk_gelen_resmi_tatil_bir_sey_degistirmez():
+    # 23 Nisan 2028 Pazar: zaten hafta sonu, Nisan 2028'de 20 hafta içi gün var
+    assert hesap.is_gunu_sayisi(2028, 4) == 20
+
+
+def test_mayista_iki_resmi_tatil():
+    # Mayıs 2026: 21 hafta içi gün; 1 Mayıs Cuma ve 19 Mayıs Salı düşülünce 19
+    assert hesap.is_gunu_sayisi(2026, 5) == 19
+
+
 def test_kesin_giderler():
     k = hesap.kesin_giderler(2026, 12, ogun_ucreti=45, binis_ucreti=20, konaklama=1500)
     assert k["yemek"] == 23 * 45          # 1035

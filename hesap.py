@@ -13,10 +13,31 @@ AYDA_BIR = "ayda_bir"             # tutar (sabit)
 SIKLIKLAR = (HER_OKUL_GUNU, AYDA_X_KEZ, AYDA_BIR)
 
 
+# Her yıl aynı tarihe gelen resmi tatiller (ay, gün).
+# Dini bayramlar her yıl değiştiği için bu listede yok.
+SABIT_RESMI_TATILLER = {
+    (1, 1),    # Yılbaşı
+    (4, 23),   # Ulusal Egemenlik ve Çocuk Bayramı
+    (5, 1),    # Emek ve Dayanışma Günü
+    (5, 19),   # Atatürk'ü Anma, Gençlik ve Spor Bayramı
+    (7, 15),   # Demokrasi ve Milli Birlik Günü
+    (8, 30),   # Zafer Bayramı
+    (10, 29),  # Cumhuriyet Bayramı
+}
+
+
+def resmi_tatil_mi(ay: int, gun: int) -> bool:
+    return (ay, gun) in SABIT_RESMI_TATILLER
+
+
 def is_gunu_sayisi(yil: int, ay: int) -> int:
-    """Verilen aydaki hafta içi (Pazartesi-Cuma) gün sayısını döndürür."""
+    """Verilen aydaki okul günü sayısı: hafta içi (Pazartesi-Cuma) ve resmi tatil olmayan günler."""
     _, gun_sayisi = calendar.monthrange(yil, ay)
-    return sum(1 for gun in range(1, gun_sayisi + 1) if calendar.weekday(yil, ay, gun) < 5)
+    return sum(
+        1
+        for gun in range(1, gun_sayisi + 1)
+        if calendar.weekday(yil, ay, gun) < 5 and not resmi_tatil_mi(ay, gun)
+    )
 
 
 def kesin_giderler(yil: int, ay: int, ogun_ucreti: float, binis_ucreti: float, konaklama: float = 0) -> dict:
