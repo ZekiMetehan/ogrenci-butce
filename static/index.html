@@ -148,7 +148,7 @@ async function hesapla() {
   const k = s.kesin;
   const ekstraSatirlari = s.ekstralar.map(e => `<tr><td>${e.ad.replace(/</g, "&lt;")}</td><td>${tl(e.aylik)}</td></tr>`).join("");
   kutu.innerHTML = `
-    <p>Bu ay <b>${k.is_gunu} okul günü</b> var.</p>
+    <p>Bu ay <b>${k.is_gunu} okul günü</b> var (hafta sonları ve resmi tatiller hariç).</p>
     <table>
       <tr><td>🍽️ Yemek (${k.is_gunu} öğün)</td><td>${tl(k.yemek)}</td></tr>
       <tr><td>🚌 Okul ulaşımı (${k.is_gunu * 2} biniş)</td><td>${tl(k.ulasim)}</td></tr>

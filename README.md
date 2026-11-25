@@ -6,7 +6,7 @@
 
 **Öğrenci Bütçe**, öğrencinin giderlerini ikiye ayırır:
 
-- **Kesin giderler** (her öğrencide olan): her okul günü 1 öğün yemek, okula gidiş-dönüş (2 biniş) ve yurt ücreti ya da ev kirası. Uygulama ayın iş günlerini kendisi sayar.
+- **Kesin giderler** (her öğrencide olan): her okul günü 1 öğün yemek, okula gidiş-dönüş (2 biniş) ve yurt ücreti ya da ev kirası. Uygulama ayın okul günlerini kendisi sayar: hafta sonlarını ve sabit tarihli resmi tatilleri (23 Nisan, 1 Mayıs, 19 Mayıs, 15 Temmuz, 30 Ağustos, 29 Ekim, 1 Ocak) düşer.
 - **Ekstralar** (öğrencinin kendisi eklediği): ikinci öğün, aktarma, AVM/çarşı yolculuğu, telefon faturası ya da kendi yazdığı herhangi bir gider. Her ekstra için tutar ve sıklık ("her okul günü", "ayda X kez", "ayda bir") seçilir.
 
 Sonunda gelen paradan bütün giderler düşülür; **geriye kalan para** ve ay sonuna kadar **günde ne kadar harcanabileceği** gösterilir.
@@ -21,7 +21,7 @@ Proje panosu: https://github.com/users/ZekiMetehan/projects/1
 | #2 Yemek kartı hesabı | Tamamlandı |
 | #3 Ulaşım hesabı ve aylık özet | Tamamlandı |
 | #4 Otomatik testler (GitHub Actions) | Tamamlandı |
-| #5 Resmi tatilleri iş günlerinden düşme | Yapılacak |
+| #5 Resmi tatilleri iş günlerinden düşme | Tamamlandı (PR ile) |
 | #6 Kesin giderler ve kullanıcının eklediği ekstralar | Tamamlandı |
 
 ## Nasıl çalıştırılır?
@@ -65,6 +65,10 @@ pytest
    - Ekstralar **3.680,00 TL**, toplam gider **7.135,00 TL**
    - Geriye kalan **865,00 TL**, "günde **27,90 TL** harcayabilirsin"
 6. Bir ekstranın yanındaki **✕** ile silip tekrar hesaplarsan toplam güncellenir.
+
+### Resmi tatiller (#5)
+- Ayı **Ekim 2026** yapıp **Hesapla**'ya bas. 29 Ekim Perşembe'ye denk geldiği için "Bu ay **21 okul günü** var" yazar (22 hafta içi gün − 1 tatil).
+- Dini bayramlar her yıl değiştiği için şimdilik hesaba katılmıyor.
 
 ## Kullanılan teknolojiler
 
