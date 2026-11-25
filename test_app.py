@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+import app as uygulama
 import hesap
 from app import app
 
@@ -97,3 +98,37 @@ def test_takvim_api():
     assert cevap.status_code == 200
     assert len(cevap.json()) == 31
     assert istemci.get("/api/takvim", params={"yil": 2026, "ay": 13}).status_code == 422
+
+
+def _bos_arsiv(tmp_path):
+    uygulama.ARSIV_DOSYASI = tmp_path / "arsiv.json"
+
+
+def test_arsive_kaydet_ve_listele(tmp_path):
+    _bos_arsiv(tmp_path)
+    istemci.post("/api/arsiv", json={"donem": "2026-11", "gelen_para": 6000, "toplam_gider": 5000, "kalan": 1000, "gunluk_harcanabilir": 33.33})
+    istemci.post("/api/arsiv", json={"donem": "2026-12", "gelen_para": 6000, "toplam_gider": 5135, "kalan": 865, "gunluk_harcanabilir": 27.9})
+    liste = istemci.get("/api/arsiv").json()
+    assert [k["donem"] for k in liste] == ["2026-12", "2026-11"]  # en yeni üstte
+
+
+def test_ayni_ay_tekrar_kaydedilirse_guncellenir(tmp_path):
+    _bos_arsiv(tmp_path)
+    istemci.post("/api/arsiv", json={"donem": "2026-12", "gelen_para": 6000, "toplam_gider": 5000, "kalan": 1000, "gunluk_harcanabilir": 32.26})
+    istemci.post("/api/arsiv", json={"donem": "2026-12", "gelen_para": 7000, "toplam_gider": 5000, "kalan": 2000, "gunluk_harcanabilir": 64.52})
+    liste = istemci.get("/api/arsiv").json()
+    assert len(liste) == 1 and liste[0]["kalan"] == 2000
+
+
+def test_arsivden_sil(tmp_path):
+    _bos_arsiv(tmp_path)
+    istemci.post("/api/arsiv", json={"donem": "2026-12", "gelen_para": 6000, "toplam_gider": 5000, "kalan": 1000, "gunluk_harcanabilir": 32.26})
+    assert istemci.delete("/api/arsiv/2026-12").status_code == 200
+    assert istemci.get("/api/arsiv").json() == []
+    assert istemci.delete("/api/arsiv/2026-12").status_code == 404
+
+
+def test_hatali_donem_reddedilir(tmp_path):
+    _bos_arsiv(tmp_path)
+    cevap = istemci.post("/api/arsiv", json={"donem": "2026-13", "gelen_para": 0, "toplam_gider": 0, "kalan": 0, "gunluk_harcanabilir": 0})
+    assert cevap.status_code == 422
