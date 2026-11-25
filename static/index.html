@@ -46,11 +46,18 @@
   .arsiv-satir.baslik { font-size: 12px; color: #777; }
   .arsiv-satir .sil { background: #eee; color: #555; padding: 6px 10px; }
   .mesaj { font-size: 14px; color: #1a7f37; margin-left: 8px; }
+  .ust { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .sifirla { background: none; color: #777; border: 1px solid #ccc; padding: 5px 10px; font-size: 13px; }
+  .hatirlandi { font-size: 13px; color: #1a7f37; }
   .arti { color: #1a7f37; }
 </style>
 </head>
 <body>
-  <h1>💸 Öğrenci Bütçe</h1>
+  <div class="ust">
+    <h1>💸 Öğrenci Bütçe</h1>
+    <button class="sifirla" onclick="bilgileriSifirla()" title="Kayıtlı bilgileri sil ve varsayılanlara dön">↺ Sıfırla</button>
+  </div>
+  <p class="hatirlandi" id="hatirlandi" hidden>✓ Son girdiğin bilgiler yüklendi.</p>
   <p>Bu ay kesin giderlerine ve ekstralarına ne gideceğini, geriye ne kalacağını hesapla.</p>
 
   <div class="kart">
@@ -107,7 +114,13 @@
 
 <script>
 document.getElementById("donem").value = new Date().toISOString().slice(0, 7);
-document.addEventListener("DOMContentLoaded", arsiviGoster);
+document.addEventListener("DOMContentLoaded", () => {
+  bilgileriYukle();
+  arsiviGoster();
+  // Kutulara yazılan her değişiklik de kaydedilsin
+  document.body.addEventListener("input", bilgileriKaydet);
+  document.body.addEventListener("change", bilgileriKaydet);
+});
 
 const SIKLIK = {
   her_okul_gunu: "Her okul günü",
@@ -135,7 +148,7 @@ function ekstraEkle(ad, tutar, siklik, adet = 1) {
   const sikligiGuncelle = () => { adetKutusu.disabled = satir.querySelector(".siklik").value !== "ayda_x_kez"; };
   satir.querySelector(".siklik").addEventListener("change", sikligiGuncelle);
   sikligiGuncelle();
-  satir.querySelector(".sil").addEventListener("click", () => { satir.remove(); bosMu(); });
+  satir.querySelector(".sil").addEventListener("click", () => { satir.remove(); bosMu(); bilgileriKaydet(); });
   document.getElementById("ekstralar").appendChild(satir);
   bosMu();
   if (!ad) satir.querySelector(".ad").focus();
@@ -208,7 +221,32 @@ async function arsivdenSil(donem) {
   arsiviGoster();
 }
 
+// ---------- Bilgileri hatırla: son girilenler tarayıcıda saklanır ----------
+const KAYIT_ANAHTARI = "ogrenci-butce-bilgiler";
+const ALANLAR = ["gelen_para", "ogun_ucreti", "binis_ucreti", "konaklama"];
+
+function bilgileriKaydet() {
+  const veri = { ekstralar: ekstralariOku() };
+  for (const id of ALANLAR) veri[id] = document.getElementById(id).value;
+  try { localStorage.setItem(KAYIT_ANAHTARI, JSON.stringify(veri)); } catch (e) { /* tarayıcı izin vermiyorsa sessizce geç */ }
+}
+
+function bilgileriYukle() {
+  let veri = null;
+  try { veri = JSON.parse(localStorage.getItem(KAYIT_ANAHTARI)); } catch (e) { veri = null; }
+  if (!veri) return;
+  for (const id of ALANLAR) if (veri[id] !== undefined) document.getElementById(id).value = veri[id];
+  for (const e of veri.ekstralar || []) ekstraEkle(e.ad, e.tutar, e.siklik, e.adet);
+  document.getElementById("hatirlandi").hidden = false;
+}
+
+function bilgileriSifirla() {
+  try { localStorage.removeItem(KAYIT_ANAHTARI); } catch (e) { /* geç */ }
+  location.reload();
+}
+
 async function hesapla() {
+  bilgileriKaydet();
   const kart = document.getElementById("sonuc_kart");
   const kutu = document.getElementById("sonuc");
   kart.hidden = false;
