@@ -5,139 +5,163 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Öğrenci Bütçe</title>
 <style>
-  body { font-family: system-ui, sans-serif; max-width: 620px; margin: 32px auto; padding: 0 16px; color: #222; }
+  body { font-family: system-ui, sans-serif; max-width: 660px; margin: 32px auto; padding: 0 16px; color: #222; }
   h1 { margin-bottom: 4px; }
   .kart { border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin: 18px 0; }
-  .kart h2 { margin: 0 0 12px; font-size: 18px; }
+  .kart h2 { margin: 0 0 4px; font-size: 18px; }
+  .aciklama { margin: 0 0 10px; font-size: 13px; color: #777; }
   label { display: block; margin: 8px 0 4px; font-size: 14px; color: #555; }
-  input { width: 100%; box-sizing: border-box; padding: 8px; font-size: 15px; border: 1px solid #bbb; border-radius: 6px; }
+  input, select { width: 100%; box-sizing: border-box; padding: 8px; font-size: 15px; border: 1px solid #bbb; border-radius: 6px; background: #fff; }
   .satir { display: flex; gap: 10px; }
   .satir > div { flex: 1; }
-  button { margin-top: 12px; padding: 9px 18px; font-size: 15px; border: 0; border-radius: 6px; background: #B4570A; color: #fff; cursor: pointer; }
-  .sonuc { margin-top: 12px; font-size: 15px; }
+  button { padding: 9px 18px; font-size: 15px; border: 0; border-radius: 6px; background: #B4570A; color: #fff; cursor: pointer; }
+  .hazir { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .hazir button { background: #fff; color: #B4570A; border: 1px solid #B4570A; padding: 6px 10px; font-size: 13px; }
+  .ekstra { display: grid; grid-template-columns: 2fr 1fr 1.6fr 0.8fr auto; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .ekstra .sil { background: #eee; color: #555; padding: 8px 10px; }
+  .ekstra input:disabled { background: #f3f3f3; color: #aaa; }
+  .bos { font-size: 14px; color: #999; margin: 6px 0; }
+  .ekle { background: #555; margin-top: 4px; }
+  .buyuk-dugme { width: 100%; margin-top: 4px; padding: 12px; font-size: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  td { padding: 5px 0; border-bottom: 1px solid #eee; }
+  td:last-child { text-align: right; }
+  .ara td { font-weight: 600; border-bottom: 2px solid #ddd; }
   .buyuk { font-size: 22px; font-weight: 700; }
   .eksi { color: #c00; }
   .arti { color: #1a7f37; }
-  small { color: #777; }
 </style>
 </head>
 <body>
   <h1>💸 Öğrenci Bütçe</h1>
-  <p>Bu ay yemeğe, otobüse ve sabit giderlere ne gideceğini, geriye ne kalacağını hesapla.</p>
+  <p>Bu ay kesin giderlerine ve ekstralarına ne gideceğini, geriye ne kalacağını hesapla.</p>
 
   <div class="kart">
-    <h2>📆 Hangi ay?</h2>
-    <input type="month" id="donem">
+    <h2>📆 Ay ve gelen para</h2>
+    <div class="satir">
+      <div><label>Hangi ay?</label><input type="month" id="donem"></div>
+      <div><label>Bu ay eline geçen para (TL)</label><input type="number" id="gelen_para" min="0" placeholder="ör. 6000"></div>
+    </div>
   </div>
 
   <div class="kart">
-    <h2>🍽️ Yemek kartı</h2>
+    <h2>🔒 Kesin giderler</h2>
+    <p class="aciklama">Her okul günü 1 öğün yemek ve okula gidiş-dönüş (2 biniş) + yurt veya ev kirası.</p>
     <div class="satir">
-      <div><label>Bir öğün ücreti (TL)</label><input type="number" id="ogun_ucreti" min="0" step="0.5" value="45"></div>
-      <div><label>Günde kaç öğün?</label><input type="number" id="gunluk_ogun" min="0" max="5" value="1"></div>
+      <div><label>Öğün ücreti (TL)</label><input type="number" id="ogun_ucreti" min="0" step="0.5" value="45"></div>
+      <div><label>Otobüs biniş ücreti (TL)</label><input type="number" id="binis_ucreti" min="0" step="0.5" value="20"></div>
+      <div><label>Yurt / ev kirası (TL)</label><input type="number" id="konaklama" min="0" value="0"></div>
     </div>
-    <button onclick="yemekHesapla()">Hesapla</button>
-    <div class="sonuc" id="yemek_sonuc"></div>
-  </div>
-  <div class="kart">
-    <h2>🚌 Ulaşım</h2>
-    <div class="satir">
-      <div><label>Günde kaç yolculuk? (gidiş + dönüş = 2)</label><input type="number" id="gunluk_yolculuk" min="0" value="2"></div>
-      <div><label>Bir yolculukta kaç kez biniyorsun? (aktarma varsa 2)</label><input type="number" id="yolculuk_basina_binis" min="1" value="1"></div>
-    </div>
-    <div class="satir">
-      <div><label>Biniş ücreti (TL)</label><input type="number" id="binis_ucreti" min="0" step="0.5" value="20"></div>
-      <div><label>Aktarma ücreti (TL)</label><input type="number" id="aktarma_ucreti" min="0" step="0.5" value="0"></div>
-    </div>
-    <small>Aktarma süresi içinde binince ücret alınmıyorsa aktarma ücretini 0 bırak.</small><br>
-    <button onclick="ulasimHesapla()">Hesapla</button>
-    <div class="sonuc" id="ulasim_sonuc"></div>
   </div>
 
   <div class="kart">
+    <h2>➕ Ekstralar</h2>
+    <p class="aciklama">Sende olanları ekle. Tutarı ve ne sıklıkla olduğunu kendine göre değiştirebilirsin.</p>
+    <div class="hazir">
+      <button onclick="ekstraEkle('İkinci öğün', 120, 'her_okul_gunu')">+ İkinci öğün</button>
+      <button onclick="ekstraEkle('Aktarma', 20, 'her_okul_gunu')">+ Aktarma</button>
+      <button onclick="ekstraEkle('AVM / çarşı yolculuğu', 20, 'ayda_x_kez', 4)">+ AVM / çarşı yolculuğu</button>
+      <button onclick="ekstraEkle('Telefon faturası', 300, 'ayda_bir')">+ Telefon faturası</button>
+    </div>
+    <div id="ekstralar"></div>
+    <p class="bos" id="bos">Henüz ekstra yok. Yukarıdan seç ya da kendin ekle.</p>
+    <button class="ekle" onclick="ekstraEkle('', 0, 'ayda_bir')">+ Kendi ekstranı ekle</button>
+  </div>
+
+  <button class="buyuk-dugme" onclick="hesapla()">Hesapla</button>
+
+  <div class="kart" id="sonuc_kart" hidden>
     <h2>💰 Aylık özet</h2>
-    <label>Bu ay eline geçen para (burs, harçlık, KYK…)</label>
-    <input type="number" id="gelen_para" min="0" placeholder="ör. 4000">
-    <div class="satir">
-      <div><label>Yurt ücreti / ev kirası (TL)</label><input type="number" id="konaklama" min="0" value="0"></div>
-      <div><label>Telefon faturası (TL)</label><input type="number" id="telefon" min="0" value="0"></div>
-    </div>
-    <button onclick="ozetGoster()">Özeti göster</button>
-    <div class="sonuc" id="ozet_sonuc"></div>
+    <div id="sonuc"></div>
   </div>
 
 <script>
-const bugun = new Date();
-document.getElementById("donem").value = bugun.toISOString().slice(0, 7);
+document.getElementById("donem").value = new Date().toISOString().slice(0, 7);
+
+const SIKLIK = {
+  her_okul_gunu: "Her okul günü",
+  ayda_x_kez: "Ayda … kez",
+  ayda_bir: "Ayda bir (sabit)"
+};
 
 function sayi(id) { return Number(document.getElementById(id).value); }
 function tl(x) { return x.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " TL"; }
-function donem() {
-  const [yil, ay] = document.getElementById("donem").value.split("-").map(Number);
-  return { yil, ay };
+
+function ekstraEkle(ad, tutar, siklik, adet = 1) {
+  const satir = document.createElement("div");
+  satir.className = "ekstra";
+  satir.innerHTML = `
+    <input class="ad" placeholder="Ekstra adı">
+    <input class="tutar" type="number" min="0" step="0.5" title="Tutar (TL)">
+    <select class="siklik">${Object.entries(SIKLIK).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select>
+    <input class="adet" type="number" min="0" title="Ayda kaç kez">
+    <button class="sil" title="Sil">✕</button>`;
+  satir.querySelector(".ad").value = ad;
+  satir.querySelector(".tutar").value = tutar;
+  satir.querySelector(".siklik").value = siklik;
+  satir.querySelector(".adet").value = adet;
+  const adetKutusu = satir.querySelector(".adet");
+  const sikligiGuncelle = () => { adetKutusu.disabled = satir.querySelector(".siklik").value !== "ayda_x_kez"; };
+  satir.querySelector(".siklik").addEventListener("change", sikligiGuncelle);
+  sikligiGuncelle();
+  satir.querySelector(".sil").addEventListener("click", () => { satir.remove(); bosMu(); });
+  document.getElementById("ekstralar").appendChild(satir);
+  bosMu();
+  if (!ad) satir.querySelector(".ad").focus();
 }
 
-async function istek(adres, veri) {
-  const cevap = await fetch(adres, {
+function bosMu() {
+  document.getElementById("bos").hidden = document.querySelectorAll(".ekstra").length > 0;
+}
+
+function ekstralariOku() {
+  return [...document.querySelectorAll(".ekstra")].map(s => ({
+    ad: s.querySelector(".ad").value.trim() || "Ekstra",
+    tutar: Number(s.querySelector(".tutar").value),
+    siklik: s.querySelector(".siklik").value,
+    adet: Number(s.querySelector(".adet").value) || 0
+  }));
+}
+
+async function hesapla() {
+  const kart = document.getElementById("sonuc_kart");
+  const kutu = document.getElementById("sonuc");
+  kart.hidden = false;
+  const [yil, ay] = document.getElementById("donem").value.split("-").map(Number);
+  const cevap = await fetch("/api/butce", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(veri)
-  });
-  if (!cevap.ok) throw new Error("Lütfen bütün kutuları doğru doldur.");
-  return cevap.json();
-}
-
-let yemekToplam = null;
-async function yemekHesapla() {
-  const kutu = document.getElementById("yemek_sonuc");
-  try {
-    const s = await istek("/api/yemek", { ...donem(), ogun_ucreti: sayi("ogun_ucreti"), gunluk_ogun: sayi("gunluk_ogun") });
-    yemekToplam = s.toplam;
-    kutu.innerHTML = `Bu ay <b>${s.is_gunu} iş günü</b> var → <b>${s.toplam_ogun} öğün</b><br>
-      Yemek kartına yüklemen gereken: <span class="buyuk">${tl(s.toplam)}</span>`;
-  } catch (e) { kutu.innerHTML = `<span class="eksi">${e.message}</span>`; }
-}
-let ulasimToplam = null;
-async function ulasimHesapla() {
-  const kutu = document.getElementById("ulasim_sonuc");
-  try {
-    const s = await istek("/api/ulasim", {
-      ...donem(),
-      gunluk_yolculuk: sayi("gunluk_yolculuk"),
-      yolculuk_basina_binis: sayi("yolculuk_basina_binis"),
+    body: JSON.stringify({
+      yil, ay,
+      gelen_para: sayi("gelen_para"),
+      ogun_ucreti: sayi("ogun_ucreti"),
       binis_ucreti: sayi("binis_ucreti"),
-      aktarma_ucreti: sayi("aktarma_ucreti")
-    });
-    ulasimToplam = s.toplam;
-    kutu.innerHTML = `${s.is_gunu} iş günü × ${s.gunluk_yolculuk} yolculuk = <b>${s.toplam_yolculuk} yolculuk</b>
-      (${s.toplam_aktarma} aktarma)<br>
-      Aylık otobüs parası: <span class="buyuk">${tl(s.toplam)}</span>`;
-  } catch (e) { kutu.innerHTML = `<span class="eksi">${e.message}</span>`; }
-}
-
-async function ozetGoster() {
-  const kutu = document.getElementById("ozet_sonuc");
-  if (yemekToplam === null || ulasimToplam === null) {
-    kutu.innerHTML = `<span class="eksi">Önce yemek ve ulaşım hesabını yap.</span>`;
+      konaklama: sayi("konaklama"),
+      ekstralar: ekstralariOku()
+    })
+  });
+  if (!cevap.ok) {
+    kutu.innerHTML = `<span class="eksi">Lütfen bütün kutuları doğru doldur.</span>`;
     return;
   }
-  try {
-    const s = await istek("/api/ozet", {
-      ...donem(),
-      gelen_para: sayi("gelen_para"),
-      yemek: yemekToplam,
-      ulasim: ulasimToplam,
-      konaklama: sayi("konaklama"),
-      telefon: sayi("telefon")
-    });
-    kutu.innerHTML = `Yemek: ${tl(yemekToplam)} · Ulaşım: ${tl(ulasimToplam)}<br>
-      Yurt/kira: ${tl(sayi("konaklama"))} · Telefon: ${tl(sayi("telefon"))}<br>
-      Toplam zorunlu gider: <b>${tl(s.toplam_gider)}</b><br>
-      Geriye kalan: <span class="buyuk ${s.yetiyor_mu ? "arti" : "eksi"}">${tl(s.kalan)}</span><br>
-      ${s.yetiyor_mu
-        ? `Bu ay <b>günde ${tl(s.gunluk_harcanabilir)}</b> harcayabilirsin (${s.gun_sayisi} gün).`
-        : `<span class="eksi">⚠️ Gelen para zorunlu giderlere yetmiyor.</span>`}`;
-  } catch (e) { kutu.innerHTML = `<span class="eksi">${e.message}</span>`; }
+  const s = await cevap.json();
+  const k = s.kesin;
+  const ekstraSatirlari = s.ekstralar.map(e => `<tr><td>${e.ad.replace(/</g, "&lt;")}</td><td>${tl(e.aylik)}</td></tr>`).join("");
+  kutu.innerHTML = `
+    <p>Bu ay <b>${k.is_gunu} okul günü</b> var.</p>
+    <table>
+      <tr><td>🍽️ Yemek (${k.is_gunu} öğün)</td><td>${tl(k.yemek)}</td></tr>
+      <tr><td>🚌 Okul ulaşımı (${k.is_gunu * 2} biniş)</td><td>${tl(k.ulasim)}</td></tr>
+      <tr><td>🏠 Yurt / ev</td><td>${tl(k.konaklama)}</td></tr>
+      <tr class="ara"><td>Kesin giderler</td><td>${tl(k.toplam)}</td></tr>
+      ${ekstraSatirlari}
+      ${s.ekstralar.length ? `<tr class="ara"><td>Ekstralar</td><td>${tl(s.ekstra_toplam)}</td></tr>` : ""}
+      <tr class="ara"><td>Toplam gider</td><td>${tl(s.toplam_gider)}</td></tr>
+    </table>
+    <p>Geriye kalan: <span class="buyuk ${s.yetiyor_mu ? "arti" : "eksi"}">${tl(s.kalan)}</span></p>
+    <p>${s.yetiyor_mu
+      ? `Bu ay <b>günde ${tl(s.gunluk_harcanabilir)}</b> harcayabilirsin (${s.gun_sayisi} gün).`
+      : `<span class="eksi">⚠️ Gelen para giderlere yetmiyor.</span>`}</p>`;
 }
 </script>
 </body>

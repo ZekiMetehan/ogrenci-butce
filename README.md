@@ -4,13 +4,12 @@
 
 Üniversite öğrencisinin her ay eline belli bir para geçiyor (burs, KYK, harçlık). Bu paranın büyük kısmı zorunlu giderlere gidiyor: **okul yemek kartı**, **otobüs**, **yurt ücreti ya da ev kirası** ve **telefon faturası**. Ama ay başında "yemek kartına ne kadar yüklemeliyim, otobüse ne kadar gidecek, geriye ne kalacak, günde ne kadar harcayabilirim?" sorusunun cevabı belli değil. Çünkü her ayın iş günü sayısı farklı ve otobüste aktarma süresi içinde binince ücret alınmayabiliyor.
 
-**Öğrenci Bütçe**, öğrencinin seçtiği aya göre:
-- yemek kartına yüklemesi gereken parayı (iş günü × öğün × öğün ücreti),
-- aylık otobüs parasını (yolculuk, aktarma ve biniş ücretine göre),
-- gelen paradan yemek, ulaşım, yurt/kira ve telefon düşüldükten sonra **geriye kalan parayı**,
-- ve ay sonuna kadar **günde ne kadar harcayabileceğini**
+**Öğrenci Bütçe**, öğrencinin giderlerini ikiye ayırır:
 
-hesaplayan küçük bir web uygulamasıdır.
+- **Kesin giderler** (her öğrencide olan): her okul günü 1 öğün yemek, okula gidiş-dönüş (2 biniş) ve yurt ücreti ya da ev kirası. Uygulama ayın iş günlerini kendisi sayar.
+- **Ekstralar** (öğrencinin kendisi eklediği): ikinci öğün, aktarma, AVM/çarşı yolculuğu, telefon faturası ya da kendi yazdığı herhangi bir gider. Her ekstra için tutar ve sıklık ("her okul günü", "ayda X kez", "ayda bir") seçilir.
+
+Sonunda gelen paradan bütün giderler düşülür; **geriye kalan para** ve ay sonuna kadar **günde ne kadar harcanabileceği** gösterilir.
 
 ## Pano
 
@@ -20,9 +19,10 @@ Proje panosu: https://github.com/users/ZekiMetehan/projects/1
 |---|---|
 | #1 Proje iskeleti ve README | Tamamlandı |
 | #2 Yemek kartı hesabı | Tamamlandı |
-| #3 Ulaşım hesabı ve aylık özet (yurt/kira, telefon, günlük harcama) | Tamamlandı |
+| #3 Ulaşım hesabı ve aylık özet | Tamamlandı |
 | #4 Otomatik testler (GitHub Actions) | Tamamlandı |
 | #5 Resmi tatilleri iş günlerinden düşme | Yapılacak |
+| #6 Kesin giderler ve kullanıcının eklediği ekstralar | Tamamlandı |
 
 ## Nasıl çalıştırılır?
 
@@ -45,17 +45,26 @@ pytest
 
 ## İki özellik nasıl denenir?
 
-### Özellik 1: Yemek kartı hesabı (#2)
-1. "Hangi ay?" kısmından **Aralık 2026**'yı seç.
-2. Öğün ücretine `45`, günde kaç öğün kısmına `1` yaz ve **Hesapla**'ya bas.
-3. **Beklenen:** "Bu ay **23 iş günü** var → 23 öğün" ve "Yemek kartına yüklemen gereken: **1.035,00 TL**" yazar.
+### Özellik 1: Kesin giderler (#2, #3, #6)
+1. "Hangi ay?" kısmından **Aralık 2026**'yı seç, gelen paraya `6000` yaz.
+2. Kesin giderlerde öğün ücreti `45`, otobüs biniş ücreti `20`, yurt/ev kirası `1500` olsun. Ekstra ekleme.
+3. **Hesapla**'ya bas.
+4. **Beklenen:**
+   - "Bu ay **23 okul günü** var."
+   - Yemek (23 öğün) **1.035,00 TL**, okul ulaşımı (46 biniş) **920,00 TL**, yurt/ev **1.500,00 TL**
+   - Kesin giderler **3.455,00 TL**, geriye kalan **2.545,00 TL** (yeşil), "günde **82,10 TL** harcayabilirsin (31 gün)"
+5. Gelen parayı `1000` yaparsan kalan eksiye düşer, kırmızı görünür ve "Gelen para giderlere yetmiyor" uyarısı çıkar.
 
-### Özellik 2: Ulaşım hesabı ve aylık özet (#3)
-1. Ay yine **Aralık 2026** olsun. Ulaşım kısmına şunları yaz: günde `2` yolculuk, bir yolculukta `2` biniş (aktarmalı), biniş ücreti `20`, aktarma ücreti `0` (aktarma ücretsiz). **Hesapla**'ya bas.
-2. **Beklenen:** "46 yolculuk (46 aktarma)" ve "Aylık otobüs parası: **920,00 TL**" yazar. Aktarma ücretsiz olduğu için sadece ilk binişler ücretlendirilir.
-3. Aylık özet kısmına gelen para `6000`, yurt/kira `1500`, telefon `300` yaz ve **Özeti göster**'e bas.
-4. **Beklenen:** Toplam zorunlu gider **3.755,00 TL**, geriye kalan **2.245,00 TL** (yeşil) ve "Bu ay **günde 72,42 TL** harcayabilirsin (31 gün)." yazar.
-5. Gelen parayı `1000` yaparsan kalan eksiye düşer, kırmızı görünür ve "Gelen para zorunlu giderlere yetmiyor" uyarısı çıkar.
+### Özellik 2: Ekstralar (#6)
+1. Yukarıdaki değerlerle, gelen parayı `8000` yap.
+2. Ekstralar kısmında hazır düğmelerden **+ İkinci öğün** (120 TL, her okul günü), **+ AVM / çarşı yolculuğu** (20 TL, sayıyı `6` yap) ve **+ Telefon faturası** (300 TL, ayda bir) düğmelerine bas.
+3. **+ Kendi ekstranı ekle** ile `Spor salonu`, `500` TL, "Ayda bir" ekle.
+4. **Hesapla**'ya bas.
+5. **Beklenen:**
+   - İkinci öğün **2.760,00 TL** (23 × 120), AVM **120,00 TL** (6 × 20), telefon **300,00 TL**, spor salonu **500,00 TL**
+   - Ekstralar **3.680,00 TL**, toplam gider **7.135,00 TL**
+   - Geriye kalan **865,00 TL**, "günde **27,90 TL** harcayabilirsin"
+6. Bir ekstranın yanındaki **✕** ile silip tekrar hesaplarsan toplam güncellenir.
 
 ## Kullanılan teknolojiler
 
