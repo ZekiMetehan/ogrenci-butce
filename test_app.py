@@ -79,3 +79,21 @@ def test_butce_api_hatali_siklik():
         "ekstralar": [{"ad": "X", "tutar": 10, "siklik": "haftada_bir"}],
     })
     assert cevap.status_code == 422
+
+
+def test_takvim_gun_turleri():
+    gunler = hesap.ay_takvimi(2026, 10)
+    assert len(gunler) == 31
+    gun29 = gunler[28]
+    assert gun29["tur"] == "tatil" and gun29["tatil_adi"] == "Cumhuriyet Bayramı"
+    assert gunler[2]["tur"] == "hafta_sonu"      # 3 Ekim 2026 Cumartesi
+    assert gunler[0]["tur"] == "okul"            # 1 Ekim 2026 Perşembe
+    okul_gunleri = sum(1 for g in gunler if g["tur"] == "okul")
+    assert okul_gunleri == hesap.is_gunu_sayisi(2026, 10)
+
+
+def test_takvim_api():
+    cevap = istemci.get("/api/takvim", params={"yil": 2026, "ay": 12})
+    assert cevap.status_code == 200
+    assert len(cevap.json()) == 31
+    assert istemci.get("/api/takvim", params={"yil": 2026, "ay": 13}).status_code == 422

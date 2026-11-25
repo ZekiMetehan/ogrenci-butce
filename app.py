@@ -2,7 +2,7 @@
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -38,3 +38,8 @@ def anasayfa():
 def butce(istek: ButceIstegi):
     veri = istek.model_dump()
     return hesap.aylik_butce(**veri)
+
+
+@app.get("/api/takvim")
+def takvim(yil: int = Query(ge=2000, le=2100), ay: int = Query(ge=1, le=12)):
+    return hesap.ay_takvimi(yil, ay)
