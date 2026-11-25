@@ -41,6 +41,11 @@
   .lejant .l-okul::before { background: #e5f4e4; }
   .lejant .l-hs::before { background: #f0efec; }
   .lejant .l-tatil::before { background: #fbebeb; }
+  .kaydet { background: #1a7f37; margin-top: 6px; }
+  .arsiv-satir { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+  .arsiv-satir.baslik { font-size: 12px; color: #777; }
+  .arsiv-satir .sil { background: #eee; color: #555; padding: 6px 10px; }
+  .mesaj { font-size: 14px; color: #1a7f37; margin-left: 8px; }
   .arti { color: #1a7f37; }
 </style>
 </head>
@@ -94,8 +99,15 @@
     <div class="lejant"><span class="l-okul">Okul günü</span><span class="l-hs">Hafta sonu</span><span class="l-tatil">Resmi tatil</span></div>
   </div>
 
+  <div class="kart">
+    <h2>📁 Arşiv</h2>
+    <p class="aciklama">Kaydettiğin aylar burada durur. Aynı ayı tekrar kaydedersen güncellenir.</p>
+    <div id="arsiv"></div>
+  </div>
+
 <script>
 document.getElementById("donem").value = new Date().toISOString().slice(0, 7);
+document.addEventListener("DOMContentLoaded", arsiviGoster);
 
 const SIKLIK = {
   her_okul_gunu: "Her okul günü",
@@ -164,6 +176,38 @@ async function takvimGoster(yil, ay) {
   document.getElementById("takvim_kart").hidden = false;
 }
 
+let sonHesap = null;
+const AYLAR = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+function donemAdi(donem) { const [y, a] = donem.split("-"); return `${AYLAR[Number(a) - 1]} ${y}`; }
+
+async function arsiviGoster() {
+  const kutu = document.getElementById("arsiv");
+  const cevap = await fetch("/api/arsiv");
+  const kayitlar = cevap.ok ? await cevap.json() : [];
+  if (!kayitlar.length) { kutu.innerHTML = `<p class="bos">Henüz kayıtlı ay yok. Hesapladıktan sonra "Bu ayı arşive kaydet"e bas.</p>`; return; }
+  kutu.innerHTML = `<div class="arsiv-satir baslik"><span>Ay</span><span>Gelen</span><span>Gider</span><span>Kalan</span><span></span></div>` +
+    kayitlar.map(k => `<div class="arsiv-satir">
+      <b>${donemAdi(k.donem)}</b><span>${tl(k.gelen_para)}</span><span>${tl(k.toplam_gider)}</span>
+      <span class="${k.kalan < 0 ? "eksi" : "arti"}">${tl(k.kalan)}</span>
+      <button class="sil" onclick="arsivdenSil('${k.donem}')" title="Sil">✕</button></div>`).join("");
+}
+
+async function arsiveKaydet() {
+  if (!sonHesap) return;
+  const cevap = await fetch("/api/arsiv", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(sonHesap)
+  });
+  document.getElementById("kayit_mesaj").textContent = cevap.ok ? "✓ Kaydedildi" : "Kaydedilemedi";
+  arsiviGoster();
+}
+
+async function arsivdenSil(donem) {
+  await fetch(`/api/arsiv/${donem}`, { method: "DELETE" });
+  arsiviGoster();
+}
+
 async function hesapla() {
   const kart = document.getElementById("sonuc_kart");
   const kutu = document.getElementById("sonuc");
@@ -187,6 +231,13 @@ async function hesapla() {
   }
   const s = await cevap.json();
   takvimGoster(yil, ay);
+  sonHesap = {
+    donem: document.getElementById("donem").value,
+    gelen_para: sayi("gelen_para"),
+    toplam_gider: s.toplam_gider,
+    kalan: s.kalan,
+    gunluk_harcanabilir: s.gunluk_harcanabilir
+  };
   const k = s.kesin;
   const ekstraSatirlari = s.ekstralar.map(e => `<tr><td>${e.ad.replace(/</g, "&lt;")}</td><td>${tl(e.aylik)}</td></tr>`).join("");
   kutu.innerHTML = `
@@ -203,7 +254,8 @@ async function hesapla() {
     <p>Geriye kalan: <span class="buyuk ${s.yetiyor_mu ? "arti" : "eksi"}">${tl(s.kalan)}</span></p>
     <p>${s.yetiyor_mu
       ? `Bu ay <b>günde ${tl(s.gunluk_harcanabilir)}</b> harcayabilirsin (${s.gun_sayisi} gün).`
-      : `<span class="eksi">⚠️ Gelen para giderlere yetmiyor.</span>`}</p>`;
+      : `<span class="eksi">⚠️ Gelen para giderlere yetmiyor.</span>`}</p>
+    <button class="kaydet" onclick="arsiveKaydet()">💾 Bu ayı arşive kaydet</button><span class="mesaj" id="kayit_mesaj"></span>`;
 }
 </script>
 </body>

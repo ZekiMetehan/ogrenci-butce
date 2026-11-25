@@ -24,6 +24,7 @@ Proje panosu: https://github.com/users/ZekiMetehan/projects/1
 | #5 Resmi tatilleri iş günlerinden düşme | Tamamlandı (PR ile) |
 | #6 Kesin giderler ve kullanıcının eklediği ekstralar | Tamamlandı |
 | #7 Takvim görünümü | Tamamlandı (PR ile) |
+| #8 Arşiv: hesaplanan ayları saklama | Tamamlandı (PR ile) |
 
 ## Nasıl çalıştırılır?
 
@@ -75,6 +76,12 @@ pytest
 - **Hesapla**'ya basınca ayın takvimi görünür: okul günleri yeşil, hafta sonları gri, resmi tatiller kırmızı.
 - Her okul gününün altında o günün gideri yazar. Öğün 45 TL, biniş 20 TL ve "+ İkinci öğün" (120 TL) eklendiyse: 45 + 2 × 20 + 120 = **205 TL**.
 - **Ekim 2026**'da 29 Ekim kırmızı görünür; üzerine gelince "Cumhuriyet Bayramı" yazar.
+
+### Arşiv (#8)
+1. Bir ayı hesapla, sonucun altındaki **💾 Bu ayı arşive kaydet**'e bas. "✓ Kaydedildi" yazar ve ay en alttaki **Arşiv** listesinde görünür.
+2. Başka bir ayı seçip hesapla ve kaydet. Liste en yeni ay üstte olacak şekilde sıralanır.
+3. Aynı ayı farklı rakamlarla tekrar kaydedersen yeni satır açılmaz, eski kayıt güncellenir.
+4. Satırın yanındaki **✕** ile silersin. Kayıtlar `arsiv.json` dosyasında tutulur; sunucu kapanıp açılsa da kaybolmaz.
 
 ## Kullanılan teknolojiler
 
