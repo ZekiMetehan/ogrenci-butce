@@ -23,7 +23,7 @@
 </head>
 <body>
   <h1>💸 Öğrenci Bütçe</h1>
-  <p>Bu ay yemek kartına ve otobüse ne kadar para gideceğini hesapla.</p>
+  <p>Bu ay yemeğe, otobüse ve sabit giderlere ne gideceğini, geriye ne kalacağını hesapla.</p>
 
   <div class="kart">
     <h2>📆 Hangi ay?</h2>
@@ -38,6 +38,32 @@
     </div>
     <button onclick="yemekHesapla()">Hesapla</button>
     <div class="sonuc" id="yemek_sonuc"></div>
+  </div>
+  <div class="kart">
+    <h2>🚌 Ulaşım</h2>
+    <div class="satir">
+      <div><label>Günde kaç yolculuk? (gidiş + dönüş = 2)</label><input type="number" id="gunluk_yolculuk" min="0" value="2"></div>
+      <div><label>Bir yolculukta kaç kez biniyorsun? (aktarma varsa 2)</label><input type="number" id="yolculuk_basina_binis" min="1" value="1"></div>
+    </div>
+    <div class="satir">
+      <div><label>Biniş ücreti (TL)</label><input type="number" id="binis_ucreti" min="0" step="0.5" value="20"></div>
+      <div><label>Aktarma ücreti (TL)</label><input type="number" id="aktarma_ucreti" min="0" step="0.5" value="0"></div>
+    </div>
+    <small>Aktarma süresi içinde binince ücret alınmıyorsa aktarma ücretini 0 bırak.</small><br>
+    <button onclick="ulasimHesapla()">Hesapla</button>
+    <div class="sonuc" id="ulasim_sonuc"></div>
+  </div>
+
+  <div class="kart">
+    <h2>💰 Aylık özet</h2>
+    <label>Bu ay eline geçen para (burs, harçlık, KYK…)</label>
+    <input type="number" id="gelen_para" min="0" placeholder="ör. 4000">
+    <div class="satir">
+      <div><label>Yurt ücreti / ev kirası (TL)</label><input type="number" id="konaklama" min="0" value="0"></div>
+      <div><label>Telefon faturası (TL)</label><input type="number" id="telefon" min="0" value="0"></div>
+    </div>
+    <button onclick="ozetGoster()">Özeti göster</button>
+    <div class="sonuc" id="ozet_sonuc"></div>
   </div>
 
 <script>
@@ -69,6 +95,48 @@ async function yemekHesapla() {
     yemekToplam = s.toplam;
     kutu.innerHTML = `Bu ay <b>${s.is_gunu} iş günü</b> var → <b>${s.toplam_ogun} öğün</b><br>
       Yemek kartına yüklemen gereken: <span class="buyuk">${tl(s.toplam)}</span>`;
+  } catch (e) { kutu.innerHTML = `<span class="eksi">${e.message}</span>`; }
+}
+let ulasimToplam = null;
+async function ulasimHesapla() {
+  const kutu = document.getElementById("ulasim_sonuc");
+  try {
+    const s = await istek("/api/ulasim", {
+      ...donem(),
+      gunluk_yolculuk: sayi("gunluk_yolculuk"),
+      yolculuk_basina_binis: sayi("yolculuk_basina_binis"),
+      binis_ucreti: sayi("binis_ucreti"),
+      aktarma_ucreti: sayi("aktarma_ucreti")
+    });
+    ulasimToplam = s.toplam;
+    kutu.innerHTML = `${s.is_gunu} iş günü × ${s.gunluk_yolculuk} yolculuk = <b>${s.toplam_yolculuk} yolculuk</b>
+      (${s.toplam_aktarma} aktarma)<br>
+      Aylık otobüs parası: <span class="buyuk">${tl(s.toplam)}</span>`;
+  } catch (e) { kutu.innerHTML = `<span class="eksi">${e.message}</span>`; }
+}
+
+async function ozetGoster() {
+  const kutu = document.getElementById("ozet_sonuc");
+  if (yemekToplam === null || ulasimToplam === null) {
+    kutu.innerHTML = `<span class="eksi">Önce yemek ve ulaşım hesabını yap.</span>`;
+    return;
+  }
+  try {
+    const s = await istek("/api/ozet", {
+      ...donem(),
+      gelen_para: sayi("gelen_para"),
+      yemek: yemekToplam,
+      ulasim: ulasimToplam,
+      konaklama: sayi("konaklama"),
+      telefon: sayi("telefon")
+    });
+    kutu.innerHTML = `Yemek: ${tl(yemekToplam)} · Ulaşım: ${tl(ulasimToplam)}<br>
+      Yurt/kira: ${tl(sayi("konaklama"))} · Telefon: ${tl(sayi("telefon"))}<br>
+      Toplam zorunlu gider: <b>${tl(s.toplam_gider)}</b><br>
+      Geriye kalan: <span class="buyuk ${s.yetiyor_mu ? "arti" : "eksi"}">${tl(s.kalan)}</span><br>
+      ${s.yetiyor_mu
+        ? `Bu ay <b>günde ${tl(s.gunluk_harcanabilir)}</b> harcayabilirsin (${s.gun_sayisi} gün).`
+        : `<span class="eksi">⚠️ Gelen para zorunlu giderlere yetmiyor.</span>`}`;
   } catch (e) { kutu.innerHTML = `<span class="eksi">${e.message}</span>`; }
 }
 </script>
