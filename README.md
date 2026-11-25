@@ -25,6 +25,7 @@ Proje panosu: https://github.com/users/ZekiMetehan/projects/1
 | #6 Kesin giderler ve kullanıcının eklediği ekstralar | Tamamlandı |
 | #7 Takvim görünümü | Tamamlandı (PR ile) |
 | #8 Arşiv: hesaplanan ayları saklama | Tamamlandı (PR ile) |
+| #9 Bilgileri hatırla | Tamamlandı (PR ile) |
 
 ## Nasıl çalıştırılır?
 
@@ -82,6 +83,13 @@ pytest
 2. Başka bir ayı seçip hesapla ve kaydet. Liste en yeni ay üstte olacak şekilde sıralanır.
 3. Aynı ayı farklı rakamlarla tekrar kaydedersen yeni satır açılmaz, eski kayıt güncellenir.
 4. Satırın yanındaki **✕** ile silersin. Kayıtlar `arsiv.json` dosyasında tutulur; sunucu kapanıp açılsa da kaybolmaz.
+
+### Bilgileri hatırla (#9)
+1. Gelen parayı, yurt ücretini değiştir ve birkaç ekstra ekle.
+2. Sayfayı yenile (**F5**) ya da kapatıp tekrar aç.
+3. **Beklenen:** Girdiğin her şey yerinde durur, üstte "✓ Son girdiğin bilgiler yüklendi." yazar.
+4. Sağ üstteki **↺ Sıfırla** düğmesi kayıtlı bilgileri siler ve sayfayı varsayılan değerlerle açar.
+5. Bilgiler sadece senin tarayıcında (localStorage) saklanır, sunucuya gönderilmez.
 
 ## Kullanılan teknolojiler
 
